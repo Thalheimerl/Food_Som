@@ -185,7 +185,7 @@ r <- readPNG(here("output/figures/circosplotsConflict.png"))
 
 combined <- grid.arrange(rasterGrob(l),rasterGrob(m), rasterGrob(r),nrow=1)
 ggsave(combined, filename = here("output/figures/circosplots_combined.png"),width = 6, height = 4, dpi = 1000)
-
+ 
 
 ```
 
