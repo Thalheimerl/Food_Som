@@ -1,0 +1,191 @@
+---
+title: "Priority_needs_SOM"
+author: "Lisa Thalheimer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load packages 
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(readr)
+library(skimr)
+library(dplyr)
+library(lubridate)
+library(here)
+library(readxl)
+library(circlize)
+library(janitor)
+library(lubridate)
+library(RColorBrewer)
+library(extrafont)
+```
+
+
+## Import file 
+```{r}
+#Import survey file and naming the raw data frame CLON_raw
+UNHCR_raw <- read_excel("UNHCR-PRMN-Displacement-Dataset.xlsx") %>%
+  clean_names()
+  
+```
+
+```{r}
+UNHCR <- UNHCR_raw %>% 
+  mutate(month = as.Date(month_end),
+         year = lubridate::year(month),
+         month_end = NULL) %>% 
+  relocate(month) %>% 
+  select(-contains("district")) %>% # drop district level data 
+  # filter(current_arrival_priority_need == "Food") %>% #check name of food --> current_arrival_priority_need
+  rename(destination = current_arrival_region, 
+         origin = previous_departure_region,
+         people = number_of_individuals)
+
+```
+
+
+## Plotting the circos plot
+
+```{r}
+options(scipen = 30) # turns off scientific notation
+
+
+# set plot parameters and colors, and format numbers
+kelly.colours <- c("gray95", "gray13", "gold2",
+                   "plum4", "darkorange1", "lightskyblue2",
+                   "firebrick", "burlywood3", "gray51",
+                   "springgreen4", "lightpink2", "deepskyblue4",
+                   "lightsalmon2", "mediumpurple4", "orange",
+                   "maroon", "yellow3", "brown4") # "yellow4", "sienna4", "chocolate", "gray19")
+
+#pdf(width = 6,height = 6,file = here("output/figures/circosplot_drought.pdf"))
+
+
+png(
+  width = 8,
+  height = 6,
+  file = here("output/figures/circosplots.png"),
+  units = "in",
+  res = 600,
+  family = "Myriad Pro"
+)
+
+# dev.off()
+#par(mfrow=c(1,3))
+
+for(i in c("all","Drought related","Conflict/Insecurity")){
+  # i = "all"
+  
+  
+  df_to_plot %>% 
+    {if(i != "all"){
+      filter(.,reason == i) #removed reason 
+    } else {
+      .   
+    }} %>% 
+    group_by(destination, origin) %>% 
+    summarise(people = sum(people),.groups = "drop")-> df_ready
+  
+  png(
+    width = 6,
+    height = 6,
+    file = here(paste0("output/figures/circosplots",switch(i,
+                                                           all = "Total",
+                                                           `Drought related` = "Drought",
+                                                           `Conflict/Insecurity` = "Conflict"),".png")),
+    units = "in",
+    res = 600,
+    family = "Myriad Pro"
+  )
+  
+  circos.clear()
+  par(mar = c(0,0,1,0)) # these are the margins and size
+  circos.par(
+    #start.degree = 180,
+    start.degree = 90,
+    gap.degree = 4,
+    track.margin = c(-0.1, 0.1),
+    points.overflow.warning = FALSE
+  )
+  
+  chordDiagram(
+    df_ready,
+    directional = 1,
+    direction.type = c("arrows", "diffHeight"),
+    diffHeight = -0.01,
+    link.arr.type = "big.arrow",
+    grid.col = kelly.colours,
+    annotationTrack = "grid",
+    link.sort = TRUE,
+    link.largest.ontop = TRUE,
+    preAllocateTracks = 1 # default by Lisa was 1
+  )
+  
+  
+  circos.trackPlotRegion(track.index = 1, 
+                         panel.fun = function(x, y) {
+                           xlim = get.cell.meta.data("xlim")
+                           #ylim = get.cell.meta.data("ylim")
+                           sector.name = get.cell.meta.data("sector.index")
+                           circos.text(x = mean(xlim), # to make sure it's centred 
+                                       y = 0.8, # distance to the out boundard
+                                       labels = gsub(" ","\n",sector.name), # spaces replaced with linebreak
+                                       #facing = "downward", 
+                                       facing = "clockwise", 
+                                       niceFacing = TRUE, 
+                                       family = "Myriad Pro",
+                                       col = "gray30", 
+                                       cex = 0.7)
+                         }, bg.border = NA)
+  
+  
+  # Units on the axis
+  circos.trackPlotRegion(track.index = 2, 
+                         panel.fun = function(x, y) {
+                           sector.name = get.cell.meta.data("sector.index")
+                           circos.axis(
+                             h = "top",
+                             labels.cex = 0.5,
+                             sector.index = sector.name,
+                             labels.niceFacing = TRUE,
+                             labels.pos.adjust = FALSE
+                           )}, bg.border = NA)
+  
+  
+  # add title, labels and axis
+  title(
+    main = switch(i,
+                  all = "Total Displacement",
+                  `Drought related` = "Drought Displacement",
+                  `Conflict/Insecurity` = "Conflict Displacement"),
+    cex.main = 1,
+    family = "Myriad Pro", 
+    line = -1 # to make sure the title is a bit closer to the plot (reduces whitespace)
+  )
+  
+  dev.off()
+  
+}
+
+
+library(png)
+library(grid)
+library(gridExtra)
+l <- readPNG(here("output/figures/circosplotsTotal.png"))
+m <- readPNG(here("output/figures/circosplotsDrought.png"))
+r <- readPNG(here("output/figures/circosplotsConflict.png"))
+
+
+combined <- grid.arrange(rasterGrob(l),rasterGrob(m), rasterGrob(r),nrow=1)
+ggsave(combined, filename = here("output/figures/circosplots_combined.png"),width = 6, height = 4, dpi = 1000)
+
+
+```
+
