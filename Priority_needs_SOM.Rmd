@@ -20,23 +20,26 @@ library(dplyr)
 library(lubridate)
 library(here)
 library(readxl)
+library(ggplot2)
 library(circlize)
 library(janitor)
 library(lubridate)
 library(RColorBrewer)
 library(extrafont)
+library(reshape)
 ```
 
 
 ## Import file 
-```{r}
-#Import survey file and naming the raw data frame CLON_raw
+```{r pressure, echo=FALSE}
+#Import survey file and naming the raw data frame UNHCR_raw
 UNHCR_raw <- read_excel("UNHCR-PRMN-Displacement-Dataset.xlsx") %>%
   clean_names()
   
 ```
 
-```{r}
+```{r pressure, echo=FALSE}
+#Cleaning up the raw dataframe and subsetting UNHCR dataframe
 UNHCR <- UNHCR_raw %>% 
   mutate(month = as.Date(month_end),
          year = lubridate::year(month),
@@ -44,16 +47,20 @@ UNHCR <- UNHCR_raw %>%
   relocate(month) %>% 
   select(-contains("district")) %>% # drop district level data 
   # filter(current_arrival_priority_need == "Food") %>% #check name of food --> current_arrival_priority_need
-  rename(destination = current_arrival_region, 
+  dplyr::rename(
+    destination = current_arrival_region, 
          origin = previous_departure_region,
-         people = number_of_individuals)
+         people = number_of_individuals,
+    priority_need = current_arrival_priority_need) %>% 
+  
+  filter()
 
 ```
 
 
 ## Plotting the circos plot
 
-```{r}
+```{r pressure, echo=FALSE}
 options(scipen = 30) # turns off scientific notation
 
 
@@ -162,9 +169,9 @@ for(i in c("all","Drought related","Conflict/Insecurity")){
   # add title, labels and axis
   title(
     main = switch(i,
-                  all = "Total Displacement",
-                  `Drought related` = "Drought Displacement",
-                  `Conflict/Insecurity` = "Conflict Displacement"),
+                  all = "Priority Needs Total IDPs",
+                  `Drought related` = "Priority Needs Drought IDPs",
+                  `Conflict/Insecurity` = "Priority Needs Conflict IDPs"),
     cex.main = 1,
     family = "Myriad Pro", 
     line = -1 # to make sure the title is a bit closer to the plot (reduces whitespace)
