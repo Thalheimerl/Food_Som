@@ -51,7 +51,8 @@ UNHCR <- UNHCR_raw %>%
     destination = current_arrival_region, 
          origin = previous_departure_region,
          people = number_of_individuals,
-    priority_need = current_arrival_priority_need)
+    priority_need = current_arrival_priority_need) %>% 
+  filter(priority_need == "Food")  #just showing Food as priority need
   
 ```
 
@@ -118,9 +119,7 @@ for(i in c("all","Drought related","Conflict/Insecurity", "Food")){
     points.overflow.warning = FALSE
   )
   
-  chordDiagram(
-    df_ready,
-    directional = 1,
+  chordDiagram(df_ready, directional = 1,
     direction.type = c("arrows", "diffHeight"),
     diffHeight = -0.01,
     link.arr.type = "big.arrow",
@@ -135,7 +134,7 @@ for(i in c("all","Drought related","Conflict/Insecurity", "Food")){
   circos.trackPlotRegion(track.index = 1, 
                          panel.fun = function(x, y) {
                            xlim = get.cell.meta.data("xlim")
-                           ylim = get.cell.meta.data("ylim")
+                           # ylim = get.cell.meta.data("ylim")
                            sector.name = get.cell.meta.data("sector.index")
                            circos.text(x = mean(xlim), # to make sure it's centred 
                                        y = 0.8, # distance to the out boundard
