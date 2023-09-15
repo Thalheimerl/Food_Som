@@ -46,7 +46,6 @@ UNHCR <- UNHCR_raw %>%
          month_end = NULL) %>% 
   relocate(month) %>% 
   select(-contains("district")) %>% # drop district level data 
-  # filter(current_arrival_priority_need == "Food") %>% #check name of food --> current_arrival_priority_need
   dplyr::rename(
     destination = current_arrival_region, 
          origin = previous_departure_region,
@@ -84,7 +83,7 @@ png(
 # dev.off()
 #par(mfrow=c(1,3))
 
-for(i in c("all","Drought related","Conflict/Insecurity", "Food")){
+for(i in c("all","Drought related","Conflict/Insecurity")){
   # i = "all"
   
   
