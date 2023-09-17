@@ -163,9 +163,9 @@ for(i in c("all","Drought related","Conflict/Insecurity")){
   # add title, labels and axis
   title(
     main = switch(i,
-                  all = "Priority Needs Total IDPs",
-                  `Drought related` = "Priority Needs Drought IDPs",
-                  `Conflict/Insecurity` = "Priority Needs Conflict IDPs"),
+                  all = "Food as Priority Need of Total IDPs",
+                  `Drought related` = "Food as Priority Need of Drought IDPs",
+                  `Conflict/Insecurity` = "Food as Priority Need of Conflict IDPs"),
     cex.main = 1,
     family = "Myriad Pro", 
     line = -1 # to make sure the title is a bit closer to the plot (reduces whitespace)
