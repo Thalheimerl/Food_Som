@@ -39,10 +39,11 @@ UNHCR_raw <- read_excel("UNHCR-PRMN-Displacement-Dataset.xlsx") %>%
 ```
 
 ```{r pressure, echo=FALSE}
-#Cleaning up the raw dataframe and subsetting UNHCR dataframe
+#Cleaning up the raw data frame and sub-setting UNHCR data frame
+
 UNHCR <- UNHCR_raw %>% 
   mutate(month = as.Date(month_end),
-         year = lubridate::year(month),
+         year = lubridate::year(month), #doesn't look right
          month_end = NULL) %>% 
   relocate(month) %>% 
   select(-contains("district")) %>% # drop district level data 
@@ -51,7 +52,7 @@ UNHCR <- UNHCR_raw %>%
          origin = previous_departure_region,
          people = number_of_individuals,
     priority_need = current_arrival_priority_need) %>% 
-  filter(priority_need == "Food")  #just showing Food as priority need
+  filter(priority_need == "Food")  #only showing Food as priority need
   
 ```
 
